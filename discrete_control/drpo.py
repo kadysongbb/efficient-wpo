@@ -83,7 +83,7 @@ class DRTRPOAgent():
         new_pi_dist = torch.exp(state_adv/beta)*pi_dist/denom
         return F.mse_loss(pi_dist, new_pi_dist)
 
-    def compute_policy_loss_wass(self, state, state_adv, beta):
+    def compute_policy_loss_wass(self, state, state_adv, beta_s, beta_l):
         """
         Policy loss of DR TRPO (Wasserstein Constraint).
         """
@@ -93,22 +93,31 @@ class DRTRPOAgent():
         state_adv = torch.FloatTensor(state_adv).to(self.device)
 
         """Find argmax_j {A(s,aj) - β*d(aj,ai)}."""
-        best_j = []
-        for i in range(self.action_dim):
-            opt_j = 0
-            opt_val = state_adv[opt_j] - beta*self.compute_distance(opt_j,i)
-            for j in range(self.action_dim):
-                cur_val = state_adv[j] - beta*self.compute_distance(j,i)
-                if cur_val > opt_val:
-                    opt_j = j
-                    opt_val = cur_val
-            best_j.append(opt_j)
+        def find_best_j(beta):
+            best_j = []
+            for i in range(self.action_dim):
+                opt_j = 0
+                opt_val = state_adv[opt_j] - beta*self.compute_distance(opt_j,i)
+                for j in range(self.action_dim):
+                    cur_val = state_adv[j] - beta*self.compute_distance(j,i)
+                    if cur_val > opt_val:
+                        opt_j = j
+                        opt_val = cur_val
+                best_j.append(opt_j)
+            return best_j
         
+        best_j_s = find_best_j(beta_s)
+        best_j_l = find_best_j(beta_l)
         new_pi_dist = torch.zeros(self.action_dim)
+        new_pi_dist_s = torch.zeros(self.action_dim)
+        new_pi_dist_l = torch.zeros(self.action_dim)
         for j in range(self.action_dim):
             for i in range(self.action_dim):
-                if j == best_j[i]:
-                    new_pi_dist[j] += pi_dist[i]
+                if j == best_j_s[i]:
+                    new_pi_dist_s[j] += pi_dist[i]
+                if j == best_j_l[i]:
+                    new_pi_dist_l[j] += pi_dist[i]
+        new_pi_dist = 0.97*new_pi_dist_l + 0.03*new_pi_dist_s
 
         return F.mse_loss(pi_dist, new_pi_dist)
 

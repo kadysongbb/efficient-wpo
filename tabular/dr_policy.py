@@ -92,6 +92,8 @@ class DRPolicyKL(object):
             denom = np.sum(np.exp(all_advantages[s]/beta)*old_distributions[s])
             self.distributions[s] = np.exp(all_advantages[s]/beta)*old_distributions[s]/denom
 
+    def get_policy(self): 
+        return self.distributions
 
 class DRPolicyWass(object):
     def __init__(self, sta_num, act_num):
@@ -166,35 +168,60 @@ class DRPolicyWass(object):
             return  objective
 
         if 'Taxi' in env_name:
-            opt_beta = 2 + 0.8*(np.random.random() - 0.5)
+            opt_beta_s = 0.5
+            opt_beta_l = 2.5
         if 'Chain' in env_name:
-            opt_beta = 0.5
+            opt_beta_s = 0.1
+            opt_beta_l = 0.6
         if 'Cliff' in env_name:
             opt_beta = 0.5
 
-        if eps <= 1000:
-            rranges = [(0,4)]
-            beta = optimize.dual_annealing(objective, rranges, maxiter = 20)
-            opt_beta = beta.x[0]
-            print('optimal beta is: ' + str(opt_beta))
+        # if eps <= 1000:
+        #     rranges = [(0,4)]
+        #     beta = optimize.dual_annealing(objective, rranges, maxiter = 20)
+        #     opt_beta = beta.x[0]
+        #     print('optimal beta is: ' + str(opt_beta))
 
         # Q
-        best_j = find_best_j(opt_beta)
+        best_j_s = find_best_j(opt_beta_s)
+        best_j_l = find_best_j(opt_beta_l)
         # compute the new policy
         old_distributions = self.distributions
+        target_distribution_s = []
+        target_distribution_l = []
         self.distributions = []
         for i in range(self.sta_num):
             self.distributions.append(np.zeros(self.act_num))
+            target_distribution_s.append(np.zeros(self.act_num))
+            target_distribution_l.append(np.zeros(self.act_num))
+
         for s in range(self.sta_num):
             for j in range(self.act_num):
                 for i in range(self.act_num):
-                    if j == best_j[s][i]:
-                        self.distributions[s][j] += old_distributions[s][i]
+                    if j == best_j_s[s][i]:
+                        target_distribution_s[s][j] += old_distributions[s][i]
+                    if j == best_j_l[s][i]:
+                        target_distribution_l[s][j] += old_distributions[s][i]
+
+        for s in range(self.sta_num):
+            self.distributions[s] = 0.95*target_distribution_l[s] + 0.05*target_distribution_s[s]
 
     def calc_d(self, ai, aj):
-        """Calculate the distance between two actions."""
+        """Calculate the distance between two actions. 
+         Taxi: 
+            Actions:
+            There are 6 discrete deterministic actions:
+            - 0: move south
+            - 1: move north
+            - 2: move east 
+            - 3: move west 
+            - 4: pickup passenger
+            - 5: dropoff passenger
+        """
         if ai == aj:
             return 0
         else:
             return 1
-        
+
+    def get_policy(self): 
+        return self.distributions
