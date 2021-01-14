@@ -61,7 +61,7 @@ class DRPolicyKL(object):
                 objective += beta*disc_freqs[s]*np.log(np.sum(np.exp(all_advantages[s]/beta)*self.distributions[s]))
             return objective
 
-        beta = 1
+        beta = 2
 
         # compute the new policy
         old_distributions = self.distributions
