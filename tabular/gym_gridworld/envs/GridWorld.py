@@ -14,7 +14,7 @@ LEFT = 3
 class GridWorld(gym.Env):
     metadata = {'render.modes': ['human']}
 
-    def __init__(self, file_name = "yellow_room1.txt", fail_rate = 0.0, terminal_reward = 100.0, move_reward = -1, bump_reward = -1, bomb_reward = -10):
+    def __init__(self, file_name = "yellow_room2.txt", fail_rate = 0.0, terminal_reward = 100.0, move_reward = -1, bump_reward = -1, bomb_reward = -10):
         self.viewer = SimpleImageViewer()
         self.n = None
         self.m = None
