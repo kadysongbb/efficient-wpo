@@ -37,29 +37,12 @@ class DRPolicyKL(object):
         action = np.random.choice(self.act_num, 1, p=distribution)
         return action[0]
 
-    def update(self, observes, actions, all_advantages, disc_freqs, env_name, eps):
+    def update(self, all_advantages, env_name):
         """ Update policy based on observations, actions and advantages
 
         Args:
-            observes: observations, numpy array of size N
-            actions: actions, numpy array of size N
             advantages: advantages, numpy array of size N
         """
-
-        def gradient(beta):
-            gradient = self.delta
-            for s in range(self.sta_num):
-                gradient += disc_freqs[s]*np.log(np.sum(np.exp(all_advantages[s]/beta)*self.distributions[s]))
-                numerator = np.sum(np.exp(all_advantages[s]/beta)*all_advantages[s]*self.distributions[s])
-                denom = beta*np.sum(np.exp(all_advantages[s]/beta)*self.distributions[s])
-                gradient -= disc_freqs[s]*numerator/denom
-            return gradient
-
-        def objective(beta):
-            objective = beta*self.delta
-            for s in range(self.sta_num):
-                objective += beta*disc_freqs[s]*np.log(np.sum(np.exp(all_advantages[s]/beta)*self.distributions[s]))
-            return objective
 
         beta = 2
 
@@ -112,14 +95,13 @@ class DRPolicyWass(object):
         action = np.random.choice(self.act_num, 1, p=distribution)
         return action[0]
 
-    def update(self, observes, actions, all_advantages, disc_freqs, env_name, eps):
+    def update(self, all_advantages, env_name):
         """ Update policy based on observations, actions and advantages
 
         Args:
             observes: observations, numpy array of size N
             actions: actions, numpy array of size N
             advantages: advantages, numpy array of size N
-            disc_freqs: discounted visitation frequencies, numpy array of size 'sta_num'
             env_name: name of the environment
         """
         def find_best_j(beta):
@@ -136,15 +118,6 @@ class DRPolicyWass(object):
                             opt_val = cur_val
                     best_j[s][i] = opt_j
             return best_j
-
-        def objective(beta):
-            objective = beta*self.delta
-            best_j  =  find_best_j(beta)
-            for s in range(self.sta_num):
-                for i in range(self.act_num):
-                    opt_j = best_j[s][i]
-                    objective += disc_freqs[s]*self.distributions[s][i]*(all_advantages[s][opt_j] - beta*self.calc_d(opt_j, i))
-            return  objective
 
         opt_beta = 0.5
 

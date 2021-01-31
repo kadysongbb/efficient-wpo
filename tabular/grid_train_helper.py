@@ -35,6 +35,16 @@ def run_episode(env, policy, max_steps, animate=False):
         rewards.append(reward)
     return (np.asarray(observes), np.asarray(actions), np.array(rewards, dtype=np.float32))
 
+def run_step(env, obs, policy):
+    """
+    Run a single step
+    """
+    done = False
+    observe = obs
+    action = policy.sample(observe)
+    next_observe, reward, done, _ = env.step(action)
+    return (observe, action, reward, next_observe, done)
+
 def episode_stats(env, policy):
     """ Gather Episode Statistics - Just for Taxi Environment
 

@@ -37,12 +37,10 @@ class DRPolicyKL(object):
         action = np.random.choice(self.act_num, 1, p=distribution)
         return action[0]
 
-    def update(self, observes, actions, all_advantages, disc_freqs, env_name, eps):
+    def update(self, all_advantages, disc_freqs, env_name, eps):
         """ Update policy based on observations, actions and advantages
 
         Args:
-            observes: observations, numpy array of size N
-            actions: actions, numpy array of size N
             advantages: advantages, numpy array of size N
         """
 
@@ -112,12 +110,10 @@ class DRPolicyWass(object):
         action = np.random.choice(self.act_num, 1, p=distribution)
         return action[0]
 
-    def update(self, observes, actions, all_advantages, disc_freqs, env_name, eps):
+    def update(self, all_advantages, disc_freqs, env_name, eps):
         """ Update policy based on observations, actions and advantages
 
         Args:
-            observes: observations, numpy array of size N
-            actions: actions, numpy array of size N
             advantages: advantages, numpy array of size N
             disc_freqs: discounted visitation frequencies, numpy array of size 'sta_num'
             env_name: name of the environment
