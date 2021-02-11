@@ -106,7 +106,7 @@ class DRPolicySinkhorn(object):
         self.act_num = act_num
         self.distributions = []
         self.delta = 0.1
-        self.lamb = 50
+        self.lamb = 3
         for i in range(sta_num):
             self.distributions.append(np.ones(act_num)/act_num)
 
@@ -144,9 +144,9 @@ class DRPolicySinkhorn(object):
             all_advantages[0][1] += 0.1
             all_advantages[1][1] += 0.3
 
-        if env_name == 'Taxi-v3':
-            for s in range(400, 500):
-                all_advantages[s][0] += 2
+        # if env_name == 'Taxi-v3':
+        #     for s in range(400, 500):
+        #         all_advantages[s][0] += 2
         
         if env_name == 'Taxi-v3':        
             beta = 3
@@ -289,8 +289,6 @@ class DRPolicyWass(object):
                 for i in range(self.act_num):
                     if j == best_j[s][i]:
                         self.distributions[s][j] += old_distributions[s][i]
-
-        print(self.distributions)
 
     def calc_d(self, ai, aj):
         """Calculate the distance between two actions. 
