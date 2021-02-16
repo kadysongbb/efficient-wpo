@@ -62,9 +62,9 @@ class ElectricityMarket(gym.Env):
 			retail_price_c = action[c]
 			curt_consumption_c = curt_demand_c * (1 + self.elasticity[self.timer]*(retail_price_c - self.wholesale_price[self.timer])/self.wholesale_price[self.timer])
 			crit_consumption_c = crit_demand_c
-			total_demanc_c = curt_demand_c + crit_demand_c
+			total_demand_c = curt_demand_c + crit_demand_c
 			total_consumption_c = curt_consumption_c + crit_consumption_c
-			new_state[c][0] = total_demanc_c
+			new_state[c][0] = total_demand_c
 			new_state[c][1] = total_consumption_c
 		return new_state
 
