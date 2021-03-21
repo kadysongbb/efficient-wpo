@@ -12,6 +12,10 @@ crit_demand = [[4,4,4,4,4,4,4,4,4,4,4,4,4,4.5,6,7,8,9,9,9,8,7,6,5],[4,4,4,4,4,4,
 # curtailable load for 3 customers
 curt_demand = [[5,5,5,5,5,5,5,5,5,5,5,5,5,6,7,8,9,10,10,10,9,8,7,6],[5,5,5,5,5,5,5,5,5,5,5,5,5,6,7,8,10,11,11,11,10,8,7,6],[5,5,5,5,5,5,5,5,5,5,5,5,5,6,7,8,10,11,11,11,10,8,7,6]]
 num_customers = 3
+# coefficients related to dissatisfaction costs
+alpha_n = [1,1,1]
+beta_n = [1,1,1]
+rho = 0.8
 
 class ElectricityMarket(gym.Env):
 
@@ -21,6 +25,9 @@ class ElectricityMarket(gym.Env):
 		self.crit_demand = crit_demand
 		self.curt_demand = curt_demand
 		self.num_customers = num_customers
+		self.alpha_n = alpha_n
+		self.beta_n = beta_n
+		self.rho = rho
 		self.timer = 0
 		# action space is the retail prices for customers
 		# can use Discrete (i.e., discretize retail price)
@@ -39,7 +46,12 @@ class ElectricityMarket(gym.Env):
 		# for each customer, the profit is (retail price - wholesale price) * consumed energy
 		reward = 0
 		for c in range(self.num_customers):
-			reward += (action[c] - self.wholesale_price[self.timer])*new_state[c][1]
+			retail_price_c = action[c]
+			curt_demand_c = self.curt_demand[c][self.timer]
+			curt_consumption_c = curt_demand_c * (1 + self.elasticity[self.timer]*(retail_price_c - self.wholesale_price[self.timer])/self.wholesale_price[self.timer])
+			dissatisfaction_cost_c = 0.5*self.alpha_n[c]*(curt_demand_c - curt_consumption_c)**2 + self.beta_n[c]*(curt_demand_c - curt_consumption_c)
+			reward += self.rho*(retail_price_c - self.wholesale_price[self.timer])*new_state[c][1]
+			reward -= (1-self.rho)*(retail_price_c*new_state[c][1] + dissatisfaction_cost_c)
 		self.state = new_state
 		self.timer += 1
 		# simulate 24 hrs
