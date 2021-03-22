@@ -34,8 +34,8 @@ class ElectricityMarket(gym.Env):
 		self.action_space = spaces.Box(low=0, high=10, shape=(num_customers,))
 		# observation space is the energy demand, the actual energy consumption of customers
 		# can use Discrete (i.e., discretize consumed energy of curtailable load)
-		self.observation_space = spaces.Box(low=0, high=12,shape=(num_customers, 2))
-		self.start = np.zeros((self.num_customers, 2))
+		self.observation_space = spaces.Box(low=0, high=12,shape=(2*num_customers, ))
+		self.start = np.zeros(2*self.num_customers)
 		self.state = self.start
 		self.done = False
 
@@ -50,8 +50,9 @@ class ElectricityMarket(gym.Env):
 			curt_demand_c = self.curt_demand[c][self.timer]
 			curt_consumption_c = curt_demand_c * (1 + self.elasticity[self.timer]*(retail_price_c - self.wholesale_price[self.timer])/self.wholesale_price[self.timer])
 			dissatisfaction_cost_c = 0.5*self.alpha_n[c]*(curt_demand_c - curt_consumption_c)**2 + self.beta_n[c]*(curt_demand_c - curt_consumption_c)
-			reward += self.rho*(retail_price_c - self.wholesale_price[self.timer])*new_state[c][1]
-			reward -= (1-self.rho)*(retail_price_c*new_state[c][1] + dissatisfaction_cost_c)
+			total_consumption_c = new_state[2*c+1] 
+			reward += self.rho*(retail_price_c - self.wholesale_price[self.timer])*total_consumption_c
+			reward -= (1-self.rho)*(retail_price_c*total_consumption_c + dissatisfaction_cost_c)
 		self.state = new_state
 		self.timer += 1
 		# simulate 24 hrs
@@ -67,7 +68,7 @@ class ElectricityMarket(gym.Env):
 		return self.state
 
 	def take_action(self, action):
-		new_state = np.zeros((self.num_customers,2))
+		new_state = np.zeros(2*self.num_customers)
 		for c in range(self.num_customers):
 			curt_demand_c = self.curt_demand[c][self.timer]
 			crit_demand_c = self.crit_demand[c][self.timer]
@@ -76,8 +77,8 @@ class ElectricityMarket(gym.Env):
 			crit_consumption_c = crit_demand_c
 			total_demand_c = curt_demand_c + crit_demand_c
 			total_consumption_c = curt_consumption_c + crit_consumption_c
-			new_state[c][0] = total_demand_c
-			new_state[c][1] = total_consumption_c
+			new_state[2*c] = total_demand_c
+			new_state[2*c+1] = total_consumption_c
 		return new_state
 
 
