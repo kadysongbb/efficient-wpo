@@ -31,6 +31,8 @@ class ElectricityMarketDiscreteDQN(gym.Env):
 		self.timer = 0
 		# action space is the retail prices for customers
 		# can use Discrete (i.e., discretize retail price)
+		# discretization level - 0.5
+		# self.action_space = spaces.Discrete(9261)
 		self.action_space = spaces.Discrete(1000)
 		# observation space is the energy demand, the actual energy consumption of customers
 		# can use Discrete (i.e., discretize consumed energy of curtailable load)
@@ -45,8 +47,16 @@ class ElectricityMarketDiscreteDQN(gym.Env):
 		# reward is defined as total net profit
 		# for each customer, the profit is (retail price - wholesale price) * consumed energy
 		reward = 0
+		retail_price_list = np.zeros(self.num_customers)
+		# retail_price_list[2] = action % 21 * 0.5 
+		# retail_price_list[1] = ((action - retail_price_list[2])/21)%21 * 0.5
+		# retail_price_list[0] = (action - 21*retail_price_list[1] -  retail_price_list[2])/(21**2) * 0.5
+		retail_price_list[0] = action // 100
+		retail_price_list[1] = (action - retail_price_list[0]*100) // 10
+		retail_price_list[2] = (action - retail_price_list[0]*100 - retail_price_list[1]*10)
+
 		for c in range(self.num_customers):
-			retail_price_c = ((action//(10**c))%10)
+			retail_price_c = retail_price_list[c]
 			curt_demand_c = self.curt_demand[c][self.timer]
 			curt_consumption_c = curt_demand_c * (1 + self.elasticity[self.timer]*(retail_price_c - self.wholesale_price[self.timer])/self.wholesale_price[self.timer])
 			dissatisfaction_cost_c = 0.5*self.alpha_n[c]*(curt_demand_c - curt_consumption_c)**2 + self.beta_n[c]*(curt_demand_c - curt_consumption_c)
@@ -69,10 +79,15 @@ class ElectricityMarketDiscreteDQN(gym.Env):
 
 	def take_action(self, action):
 		new_state = np.zeros(2*self.num_customers)
+		retail_price_list = np.zeros(self.num_customers)
+		retail_price_list[0] = action // 100
+		retail_price_list[1] = (action - retail_price_list[0]*100) // 10
+		retail_price_list[2] = (action - retail_price_list[0]*100 - retail_price_list[1]*10)
+
 		for c in range(self.num_customers):
 			curt_demand_c = self.curt_demand[c][self.timer]
 			crit_demand_c = self.crit_demand[c][self.timer]
-			retail_price_c = ((action//(10**c))%10)
+			retail_price_c = retail_price_list[c]
 			curt_consumption_c = curt_demand_c * (1 + self.elasticity[self.timer]*(retail_price_c - self.wholesale_price[self.timer])/self.wholesale_price[self.timer])
 			crit_consumption_c = crit_demand_c
 			total_demand_c = curt_demand_c + crit_demand_c

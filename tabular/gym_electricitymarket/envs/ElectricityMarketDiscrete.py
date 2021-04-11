@@ -31,7 +31,7 @@ class ElectricityMarketDiscrete(gym.Env):
 		self.timer = 0
 		# action space is the retail prices for customers
 		# can use Discrete (i.e., discretize retail price)
-		self.action_space = spaces.MultiDiscrete([100,100,100])
+		self.action_space = spaces.MultiDiscrete([21,21,21])
 		# observation space is the energy demand, the actual energy consumption of customers
 		# can use Discrete (i.e., discretize consumed energy of curtailable load)
 		self.observation_space = spaces.Box(low=0, high=12,shape=(2*num_customers, ))
@@ -46,7 +46,7 @@ class ElectricityMarketDiscrete(gym.Env):
 		# for each customer, the profit is (retail price - wholesale price) * consumed energy
 		reward = 0
 		for c in range(self.num_customers):
-			retail_price_c = action[c]/10
+			retail_price_c = action[c]*0.5
 			curt_demand_c = self.curt_demand[c][self.timer]
 			curt_consumption_c = curt_demand_c * (1 + self.elasticity[self.timer]*(retail_price_c - self.wholesale_price[self.timer])/self.wholesale_price[self.timer])
 			dissatisfaction_cost_c = 0.5*self.alpha_n[c]*(curt_demand_c - curt_consumption_c)**2 + self.beta_n[c]*(curt_demand_c - curt_consumption_c)
@@ -72,7 +72,7 @@ class ElectricityMarketDiscrete(gym.Env):
 		for c in range(self.num_customers):
 			curt_demand_c = self.curt_demand[c][self.timer]
 			crit_demand_c = self.crit_demand[c][self.timer]
-			retail_price_c = action[c]/10
+			retail_price_c = action[c]*0.5
 			curt_consumption_c = curt_demand_c * (1 + self.elasticity[self.timer]*(retail_price_c - self.wholesale_price[self.timer])/self.wholesale_price[self.timer])
 			crit_consumption_c = crit_demand_c
 			total_demand_c = curt_demand_c + crit_demand_c
