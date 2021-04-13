@@ -7,6 +7,8 @@ import numpy as np
 import tensorflow as tf
 from tqdm import trange
 
+import gym_electricitymarket
+
 import utils.utils as utils
 from noises.ounoise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
 from environment.wapper import Wrapper
@@ -19,7 +21,7 @@ from GAC.agent import GACAgent
 def create_argument_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '--environment', default="LunarLanderContinuous-v2",
+        '--environment', default="ElectricityMarket-v0",
         help='name of the environment to run'
     )
     parser.add_argument(
@@ -44,7 +46,7 @@ def create_argument_parser():
     parser.add_argument('--eval_freq', type=int, default=500000, metavar='N')
     parser.add_argument('--eval_episodes', type=int, default=10, metavar='N')
     parser.add_argument(
-        '--buffer_size', type=int, default=1000000, metavar='N',
+        '--buffer_size', type=int, default=1000, metavar='N',
         help='size of replay buffer'
     )
     parser.add_argument('--action_samples', type=int, default=16)
@@ -76,7 +78,7 @@ def create_argument_parser():
         help='dual parameter beta for normalizing actions'
     )
     parser.add_argument(
-        '--num_steps', type=int, default=5000, metavar='N',
+        '--num_steps', type=int, default=30000, metavar='N',
         help='number of training steps to play the environments game'
     )
     return parser
