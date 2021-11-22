@@ -151,13 +151,18 @@ class DRPolicySinkhorn(object):
         if env_name == 'Taxi-v3':        
             beta = 3
             # consider a varying lambda
-            self.lamb = 1000/eps
-            # self.lamb = np.log(eps)*2
+            # lamb_value = eps
+            lamb_value = eps**2
+            # lamb_value = np.log10(eps)
+            if lamb_value >= 6:
+                self.lamb = 5.5
+            else:
+                self.lamb = lamb_value
         elif env_name == 'NChain-v0':
             beta = 0.8
             # consider a varying lambda
             # self.lamb = 100/eps
-            self.lamb = np.log(eps)
+            # self.lamb = np.log(eps)
 
         # compute the new policy
         old_distributions = self.distributions
