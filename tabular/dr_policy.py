@@ -313,10 +313,11 @@ class DRPolicyWass(object):
             - 4: pickup passenger
             - 5: dropoff passenger
         """
-        if ai == aj:
-            return 0
-        else:
-            return 1
+        # if ai == aj:
+        #     return 0
+        # else:
+        #     return 1
+        return np.sqrt(abs(ai-aj))
 
     def get_policy(self): 
         return self.distributions
